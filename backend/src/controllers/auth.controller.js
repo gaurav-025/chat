@@ -18,10 +18,13 @@ export const signup= async (req,res)=>{
         const salt=await bcrypt.genSalt(10);
         const hashedPassword=await bcrypt.hash(password,salt);
 
+        const ip=req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
         const newUser=new User({
             fullName: fullName,
             email: email,
-            password: hashedPassword
+            password: hashedPassword,
+            loginHistory: [{ip}]
         });
 
         if(newUser){
@@ -56,6 +59,16 @@ export const login=async (req,res)=>{
         if(!isPasswordCorrect){
             return res.status(400).json({message:"Invalid Credentials"});
         }
+
+        const ip=req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        user.loginHistory.push({ip});
+
+        if(user.loginHistory.length>10){
+            user.loginHistory=user.loginHistory.slice(-10);
+        }
+
+        await user.save();
+
         generateToken(user._id,res);
         res.status(200).json({
             _id:user._id,

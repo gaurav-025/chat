@@ -19,7 +19,18 @@ const userSchema=new mongoose.Schema(
         profilePic:{
             type: String,
             default: ""
-        }
+        },
+        loginHistory:[
+            {
+                ip:{
+                    type:String
+                },
+                timestamp:{
+                    type:Date,
+                    default:Date.now,
+                },
+            },
+        ],
     },
     {
         timestamps: true
